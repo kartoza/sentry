@@ -10,25 +10,80 @@ redis:
   image: redis:2.8
   volumes_from:
     - data
-  restart: always
+  restart: on-failure:5
 
-postgres:
-  image: postgres:9.4
-  volumes_from:
-    - data
-  restart: always
+db:
+  image: kartoza/postgis:9.4-2.1
+  volumes:
+    - ./pg/postgres_data:/var/lib/postgresql
+    - ./backups:/backups
+  environment:
+    - USERNAME=docker
+    - PASS=docker
+  restart: on-failure:5
+
+dbbackup: &dbbackup
+#  image: kartoza/pg-backup:9.3
+  image: kartoza/pg-backup:9.4
+  hostname: pg-backups
+  volumes:
+    - ./pg/dbbackup/backups:/backups
+    # this folder is used as target folder for sftppgbackup as the
+    # source folder
+    - ./sftp_backup/target/pg:/pg_backup
+  links:
+    - db:db
+  environment:
+    # make this equal to PG_$(PROJECT_ID) in makefile
+    - DUMPPREFIX=PG_sentry
+    # These are all defaults anyway, but setting explicitly in
+    # case we ever want to ever use different credentials
+    - PGUSER=docker
+    - PGPASSWORD=docker
+    - PGPORT=5432
+    - PGHOST=db
+    - PGDATABASE=gis
+
+sftppgbackup: &sftppgbackup
+  image: kartoza/sftp-backup:1.0
+  hostname: sftppgbackup
+  volumes:
+    # this folder is used to store local backups from pg dbbackup
+    - ./sftp_backup/backups/pg:/backups
+    # this folder is used as target folder/source where the backup comes from
+    # this backup comes from dbbackup
+    - ./sftp_backup/target/pg:/pg_backup
+  environment:
+    - DUMPPREFIX=PG_sentry
+    - DAILY=14
+    - MONTHLY=12
+    - YEARLY=3
+    # set this to the target/source folder where the backup comes from
+    - TARGET_FOLDER=/pg_backup
+  env_file:
+    - sftp_pg_credential.env
+
+smtp:
+  image: catatnight/postfix
+  hostname: postfix
+  environment:
+    # You could change this to something more suitable
+    - maildomain=kartoza.com
+    - smtp_user=noreply:docker
+  restart: on-failure:5
 
 www:
   build: .
   ports:
-    - "8080"
+    - "3333"
   links:
-    - postgres
+    - db
     - redis
+    - smtp
   volumes_from:
     - data
   entrypoint: sentry
   command: start --noinput
   env_file:
     - private-data/environment.sh
-  restart: always
+  restart: on-failure:5

@@ -4,7 +4,7 @@ from sentry.conf.server import *
 import os
 
 CONF_ROOT = os.path.dirname(__file__)
-TIME_ZONE = 'Europe/Oslo'
+TIME_ZONE = 'Africa/Johannesburg'
 
 # Remeber to set the SECRET_KEY environment variable when putting this into
 # production so no one can spoofe your sessions. Changing this will cause your
@@ -18,9 +18,9 @@ ALLOWED_HOSTS = ['*']
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'postgres',
-        'USER': 'postgres',
-        'HOST': 'postgres',
+        'NAME': 'gis',
+        'USER': 'docker',
+        'HOST': 'db',
         'PORT': '5432',
 
         # If you're using Postgres, we recommend turning on autocommit
@@ -29,6 +29,7 @@ DATABASES = {
         },
     }
 }
+SENTRY_CACHE = 'sentry.cache.redis.RedisCache'
 
 SENTRY_REDIS_OPTIONS = {
     'hosts': {
@@ -40,18 +41,24 @@ SENTRY_REDIS_OPTIONS = {
 }
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = os.environ.get('EMAIL_HOST', '')
-EMAIL_PORT = os.environ.get('EMAIL_PORT', '')
-EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
-EMAIL_USE_TLS = True
+# Host for sending e-mail.
+EMAIL_HOST = 'smtp'
+# Port for sending e-mail.
+EMAIL_PORT = 25
+# SMTP authentication information for EMAIL_HOST.
+# See fig.yml for where these are defined
+EMAIL_HOST_USER = 'noreply@kartoza.com'
+EMAIL_HOST_PASSWORD = 'docker'
+EMAIL_USE_TLS = False
+EMAIL_SUBJECT_PREFIX = '[PROJECTA]'
 
 # The email address to send on behalf of
-SENTRY_URL_PREFIX = os.environ.get('SENTRY_URL_PREFIX') or 'http://example.com'
-SERVER_EMAIL = os.environ.get('SERVER_EMAIL') or 'root@localhost'
+SENTRY_URL_PREFIX = 'sentry.kartoza.com'
+SERVER_EMAIL = 'noreply@kartoza.com'
+SENTRY_ADMIN_EMAIL = 'tim@kartoza.com'
 
 SENTRY_WEB_HOST = '0.0.0.0'
-SENTRY_WEB_PORT = 8080
+SENTRY_WEB_PORT = 3333
 SENTRY_WEB_OPTIONS = {
     'workers': 3,             # number of gunicorn workers
     'limit_request_line': 0,  # required for raven-js
