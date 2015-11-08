@@ -22,7 +22,7 @@ DATABASES = {
         'USER': 'docker',
         'HOST': 'db',
         'PORT': '5432',
-
+        'PASSWORD': 'docker',
         # If you're using Postgres, we recommend turning on autocommit
         'OPTIONS': {
             'autocommit': True,
@@ -53,7 +53,7 @@ EMAIL_USE_TLS = False
 EMAIL_SUBJECT_PREFIX = '[PROJECTA]'
 
 # The email address to send on behalf of
-SENTRY_URL_PREFIX = 'sentry.kartoza.com'
+SENTRY_URL_PREFIX = 'http://sentry.kartoza.com'
 SERVER_EMAIL = 'noreply@kartoza.com'
 SENTRY_ADMIN_EMAIL = 'tim@kartoza.com'
 

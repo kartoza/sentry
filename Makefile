@@ -51,14 +51,14 @@ logs:
 	@echo "------------------------------------------------------------------"
 	@echo "Showing uwsgi logs in production mode"
 	@echo "------------------------------------------------------------------"
-	@docker-compose -p $(PROJECT_ID) logs sentry
+	@docker-compose -p $(PROJECT_ID) logs www
 
-shell:
+add_worker:
 	@echo
 	@echo "------------------------------------------------------------------"
-	@echo "Shelling in in production mode"
+	@echo "Starting a celery worker in production mode"
 	@echo "------------------------------------------------------------------"
-	@docker-compose -p $(PROJECT_ID) run uwsgi /bin/bash
+	@docker-compose -p $(PROJECT_ID) run www celery worker -B &
 
 dbshell:
 	@echo
@@ -91,7 +91,6 @@ dbbackup:
 	# out with wrong path...
 	# trigger sftp backups
 	@docker exec -t -i $(PROJECT_ID)_sftppgbackup_1 /backups.sh
-	@docker exec -t -i $(PROJECT_ID)_sftpmediabackup_1 /backups.sh
 
 pushbackup:
 	@echo
